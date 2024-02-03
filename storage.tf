@@ -28,7 +28,7 @@ resource "azurerm_storage_account_network_rules" "example" {
 
 resource "azurerm_storage_share" "storage_share" {
   quota                = 5120
-  name                 = "${var.windows_logic_app_name}-content"
+  name                 = "${var.windows_logic_app_name}-${var.environment}-content"
   storage_account_name = azurerm_storage_account.storage_account.name
 
   depends_on = [azurerm_storage_account.storage_account]
