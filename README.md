@@ -1,0 +1,1 @@
+# azure-logic-app-standard-with-private-endpoint-and-private-storage-account
