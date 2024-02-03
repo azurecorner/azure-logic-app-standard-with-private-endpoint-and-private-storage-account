@@ -39,82 +39,42 @@ resource "azurerm_subnet" "outbound_subnet" {
   ]
 }
 
-resource "azurerm_storage_account" "storage_account" {
-  account_replication_type        = "LRS"
-  account_tier                    = "Standard"
-  location                        = "francecentral"
-  name                            = "logicappdatasyncst"
-  min_tls_version                 = "TLS1_2"
-  allow_nested_items_to_be_public = false
-  public_network_access_enabled   = true
 
-  network_rules {
-    default_action             = "Deny"
-    bypass                     = ["AzureServices"]
-    ip_rules                   = ["90.26.62.205"]
-    virtual_network_subnet_ids = [azurerm_subnet.outbound_subnet.id]
-  }
-
+resource "azurerm_private_dns_zone" "azurewebsites" {
+  name                = "privatelink.azurewebsites.net"
   resource_group_name = var.resource_group_name
   depends_on = [
     azurerm_resource_group.resource_group
   ]
 }
 
-resource "azurerm_storage_share" "storage_share" {
-  quota                = 5120
-  name                 = "${var.windows_logic_app_name}-content"
-  storage_account_name = azurerm_storage_account.storage_account.name
-
-  depends_on = [azurerm_storage_account.storage_account]
-}
-
-resource "azurerm_service_plan" "service_plan" {
-  location            = "francecentral"
-  name                = "logicappdatasync-asp"
-  os_type             = "Windows"
+resource "azurerm_private_dns_zone" "web_core_windows" {
+  name                = "privatelink.web.core.windows.net"
   resource_group_name = var.resource_group_name
-  sku_name            = "WS1"
-  #zone_balancing_enabled = true
+
   depends_on = [
     azurerm_resource_group.resource_group
   ]
 }
-resource "azurerm_logic_app_standard" "logic_app_standard" {
-  app_service_plan_id        = azurerm_service_plan.service_plan.id
-  https_only                 = true
-  location                   = "francecentral"
-  name                       = var.windows_logic_app_name
-  resource_group_name        = var.resource_group_name
-  storage_account_access_key = azurerm_storage_account.storage_account.primary_access_key
-  storage_account_name       = azurerm_storage_account.storage_account.name
 
-  version                   = "~4"
-  virtual_network_subnet_id = azurerm_subnet.outbound_subnet.id
-  identity {
-    type = "SystemAssigned"
-  }
-
-
-  app_settings = {
-    "WEBSITE_CONTENTOVERVNET" : "1"
-    "FUNCTIONS_WORKER_RUNTIME" : "node"
-    "WEBSITE_NODE_DEFAULT_VERSION" : "~18"
-    # "APPINSIGHTS_INSTRUMENTATIONKEY" = var.instrumentation_key
-  }
-
-  site_config {
-    use_32_bit_worker_process        = false
-    ftps_state                       = "Disabled"
-    websockets_enabled               = false
-    min_tls_version                  = "1.2"
-    runtime_scale_monitoring_enabled = false
-    vnet_route_all_enabled           = true
-    always_on                        = true
-    public_network_access_enabled    = false
-  }
+resource "azurerm_private_dns_zone_virtual_network_link" "virtual_network_link_azurewebsites" {
+  name                  = "logicappdatasync-link"
+  private_dns_zone_name = azurerm_private_dns_zone.azurewebsites.name
+  resource_group_name   = var.resource_group_name
+  virtual_network_id    = azurerm_virtual_network.virtual_network.id
   depends_on = [
-    azurerm_subnet.outbound_subnet, azurerm_storage_share.storage_share,
-    azurerm_service_plan.service_plan
+    azurerm_private_dns_zone.azurewebsites,
+    azurerm_virtual_network.virtual_network
+  ]
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "virtual_network_link_windows_web_core" {
+  name                  = "logicappdatasync-link-blob"
+  private_dns_zone_name = azurerm_private_dns_zone.web_core_windows.name
+  resource_group_name   = var.resource_group_name
+  virtual_network_id    = azurerm_virtual_network.virtual_network.id
+  depends_on = [
+    azurerm_private_dns_zone.web_core_windows,
+    azurerm_virtual_network.virtual_network
   ]
 }
