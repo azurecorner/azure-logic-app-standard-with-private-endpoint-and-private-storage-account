@@ -6,7 +6,7 @@ resource "azurerm_storage_account" "storage_account" {
   account_replication_type        = var.storage_account_replication_type
   account_tier                    = var.storage_account_tier
   location                        = var.resource_group_location
-  name                            = var.storage_account_name
+  name                            = "${var.storage_account_name}${var.environment}"
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
   public_network_access_enabled   = true

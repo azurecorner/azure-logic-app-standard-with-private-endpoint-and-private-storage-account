@@ -78,3 +78,22 @@ resource "azurerm_private_dns_zone_virtual_network_link" "virtual_network_link_w
     azurerm_virtual_network.virtual_network
   ]
 }
+
+
+resource "azurerm_log_analytics_workspace" "log_analytics_workspace" {
+  name                = var.log_analytics_workspace_name
+  resource_group_name = var.resource_group_name
+  location            = var.resource_group_location
+  sku                 = var.log_analytics_workspace_sku
+  retention_in_days   = 30
+
+}
+
+resource "azurerm_application_insights" "application_insights" {
+  name                = var.application_insights_name
+  resource_group_name = var.resource_group_name
+  location            = var.resource_group_location
+  workspace_id        = azurerm_log_analytics_workspace.log_analytics_workspace.id
+  application_type    = "web"
+  depends_on          = [azurerm_log_analytics_workspace.log_analytics_workspace]
+}

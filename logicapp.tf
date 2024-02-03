@@ -1,7 +1,7 @@
 
 resource "azurerm_service_plan" "service_plan" {
   location            = var.resource_group_location
-  name                = var.service_plan_name
+  name                = "${var.service_plan_name}-${var.environment}"
   os_type             = "Windows"
   resource_group_name = var.resource_group_name
   sku_name            = "WS1"
@@ -17,7 +17,7 @@ resource "azurerm_logic_app_standard" "logic_app_standard" {
   app_service_plan_id        = azurerm_service_plan.service_plan.id
   https_only                 = true
   location                   = var.resource_group_location
-  name                       = var.windows_logic_app_name
+  name                       = "${var.windows_logic_app_name}-${var.environment}"
   resource_group_name        = var.resource_group_name
   storage_account_access_key = azurerm_storage_account.storage_account.primary_access_key
   storage_account_name       = azurerm_storage_account.storage_account.name
@@ -28,13 +28,12 @@ resource "azurerm_logic_app_standard" "logic_app_standard" {
     type = "SystemAssigned"
   }
 
-
   app_settings = {
     "WEBSITE_CONTENTOVERVNET" : "1"
     "FUNCTIONS_WORKER_RUNTIME" : "node"
     "WEBSITE_NODE_DEFAULT_VERSION" : "~18"
-    WEBSITE_VNET_ROUTE_ALL = 1
-    # "APPINSIGHTS_INSTRUMENTATIONKEY" = var.instrumentation_key
+    WEBSITE_VNET_ROUTE_ALL           = 1
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.application_insights.instrumentation_key
   }
 
   site_config {

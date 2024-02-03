@@ -1,3 +1,7 @@
+variable "environment" {
+
+}
+
 variable "resource_group_name" {
   default = "rg-spoke-demo"
 }
@@ -53,4 +57,15 @@ variable "storage_account_tier" {
 
 variable "storage_account_allowed_ip" {
   default = "90.26.62.205"
-}  
+}
+
+variable "log_analytics_workspace_name" {
+
+}
+variable "log_analytics_workspace_sku" {
+
+}
+
+variable "application_insights_name" {
+
+}
