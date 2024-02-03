@@ -16,7 +16,7 @@ resource "azurerm_subnet" "inbound_subnet" {
   address_prefixes     = ["10.0.0.0/24"]
   name                 = "inboundSubnet"
   resource_group_name  = var.resource_group_name
-  virtual_network_name =azurerm_virtual_network.virtual_network.name
+  virtual_network_name = azurerm_virtual_network.virtual_network.name
   depends_on = [
     azurerm_virtual_network.virtual_network
   ]
@@ -40,10 +40,10 @@ resource "azurerm_subnet" "outbound_subnet" {
 }
 
 resource "azurerm_storage_account" "storage_account" {
-  account_replication_type         = "LRS"
-  account_tier                     = "Standard"
- location                         = "francecentral"
-  name                             = "logicappdatasyncst"
+  account_replication_type        = "LRS"
+  account_tier                    = "Standard"
+  location                        = "francecentral"
+  name                            = "logicappdatasyncst"
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
   public_network_access_enabled   = true
@@ -55,7 +55,7 @@ resource "azurerm_storage_account" "storage_account" {
     virtual_network_subnet_ids = [azurerm_subnet.outbound_subnet.id]
   }
 
-  resource_group_name              = var.resource_group_name
+  resource_group_name = var.resource_group_name
   depends_on = [
     azurerm_resource_group.resource_group
   ]
@@ -63,18 +63,18 @@ resource "azurerm_storage_account" "storage_account" {
 
 resource "azurerm_storage_share" "storage_share" {
   quota                = 5120
-   name                 = "${var.windows_logic_app_name}-content"
+  name                 = "${var.windows_logic_app_name}-content"
   storage_account_name = azurerm_storage_account.storage_account.name
 
-  depends_on = [ azurerm_storage_account.storage_account ]
+  depends_on = [azurerm_storage_account.storage_account]
 }
 
 resource "azurerm_service_plan" "service_plan" {
-  location               = "francecentral"
-  name                   = "logicappdatasync-asp"
-  os_type                = "Windows"
-  resource_group_name    = var.resource_group_name
-  sku_name               = "WS1"
+  location            = "francecentral"
+  name                = "logicappdatasync-asp"
+  os_type             = "Windows"
+  resource_group_name = var.resource_group_name
+  sku_name            = "WS1"
   #zone_balancing_enabled = true
   depends_on = [
     azurerm_resource_group.resource_group
@@ -88,19 +88,19 @@ resource "azurerm_logic_app_standard" "logic_app_standard" {
   resource_group_name        = var.resource_group_name
   storage_account_access_key = azurerm_storage_account.storage_account.primary_access_key
   storage_account_name       = azurerm_storage_account.storage_account.name
-  
+
   version                   = "~4"
   virtual_network_subnet_id = azurerm_subnet.outbound_subnet.id
   identity {
     type = "SystemAssigned"
   }
 
-  
+
   app_settings = {
     "WEBSITE_CONTENTOVERVNET" : "1"
     "FUNCTIONS_WORKER_RUNTIME" : "node"
     "WEBSITE_NODE_DEFAULT_VERSION" : "~18"
-   # "APPINSIGHTS_INSTRUMENTATIONKEY" = var.instrumentation_key
+    # "APPINSIGHTS_INSTRUMENTATIONKEY" = var.instrumentation_key
   }
 
   site_config {
