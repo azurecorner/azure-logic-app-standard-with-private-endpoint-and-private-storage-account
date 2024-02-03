@@ -1,14 +1,14 @@
 
 resource "azurerm_service_plan" "service_plan" {
-  location            = "francecentral"
-  name                = "logicappdatasync-asp"
+  location            = var.resource_group_location
+  name                = var.service_plan_name
   os_type             = "Windows"
   resource_group_name = var.resource_group_name
   sku_name            = "WS1"
 
   maximum_elastic_worker_count = 20
 
-  zone_balancing_enabled = true
+  zone_balancing_enabled = var.service_plan_zone_balancing_enabled
   depends_on = [
     azurerm_resource_group.resource_group
   ]
@@ -16,7 +16,7 @@ resource "azurerm_service_plan" "service_plan" {
 resource "azurerm_logic_app_standard" "logic_app_standard" {
   app_service_plan_id        = azurerm_service_plan.service_plan.id
   https_only                 = true
-  location                   = "francecentral"
+  location                   = var.resource_group_location
   name                       = var.windows_logic_app_name
   resource_group_name        = var.resource_group_name
   storage_account_access_key = azurerm_storage_account.storage_account.primary_access_key

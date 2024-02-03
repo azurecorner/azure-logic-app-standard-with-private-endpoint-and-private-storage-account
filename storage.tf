@@ -3,9 +3,9 @@ locals {
 }
 
 resource "azurerm_storage_account" "storage_account" {
-  account_replication_type        = "ZRS"
-  account_tier                    = "Standard"
-  location                        = "francecentral"
+  account_replication_type        = var.storage_account_replication_type
+  account_tier                    = var.storage_account_tier
+  location                        = var.resource_group_location
   name                            = var.storage_account_name
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
@@ -21,7 +21,7 @@ resource "azurerm_storage_account_network_rules" "example" {
   storage_account_id         = azurerm_storage_account.storage_account.id
   default_action             = "Deny"
   bypass                     = ["AzureServices"]
-  ip_rules                   = ["90.26.62.205"]
+  ip_rules                   = [var.storage_account_allowed_ip]
   virtual_network_subnet_ids = [azurerm_subnet.outbound_subnet.id]
   depends_on                 = [azurerm_storage_account.storage_account]
 }

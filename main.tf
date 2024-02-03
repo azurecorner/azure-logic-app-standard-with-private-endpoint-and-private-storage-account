@@ -1,20 +1,20 @@
 resource "azurerm_resource_group" "resource_group" {
-  location = "francecentral"
+  location = var.resource_group_location
   name     = var.resource_group_name
 }
 
 resource "azurerm_virtual_network" "virtual_network" {
-  address_space       = ["10.0.0.0/16"]
-  location            = "francecentral"
-  name                = "vnet-logicapp-demo"
+  address_space       = [var.virtual_network_address_space]
+  location            = var.resource_group_location
+  name                = var.virtual_network_name
   resource_group_name = var.resource_group_name
   depends_on = [
     azurerm_resource_group.resource_group,
   ]
 }
 resource "azurerm_subnet" "inbound_subnet" {
-  address_prefixes     = ["10.0.0.0/24"]
-  name                 = "inboundSubnet"
+  address_prefixes     = [var.inbound_subnet_address_space]
+  name                 = var.inbound_subnet_name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.virtual_network.name
   depends_on = [
@@ -22,8 +22,8 @@ resource "azurerm_subnet" "inbound_subnet" {
   ]
 }
 resource "azurerm_subnet" "outbound_subnet" {
-  address_prefixes     = ["10.0.1.0/24"]
-  name                 = "outboundSubnet"
+  address_prefixes     = [var.outbound_subnet_address_space]
+  name                 = var.outbound_subnet_name
   resource_group_name  = var.resource_group_name
   service_endpoints    = ["Microsoft.Storage"]
   virtual_network_name = azurerm_virtual_network.virtual_network.name
@@ -58,7 +58,7 @@ resource "azurerm_private_dns_zone" "web_core_windows" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "virtual_network_link_azurewebsites" {
-  name                  = "logicappdatasync-link"
+  name                  = "${var.virtual_network_name}-azurewebsites-link"
   private_dns_zone_name = azurerm_private_dns_zone.azurewebsites.name
   resource_group_name   = var.resource_group_name
   virtual_network_id    = azurerm_virtual_network.virtual_network.id
@@ -69,7 +69,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "virtual_network_link_a
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "virtual_network_link_windows_web_core" {
-  name                  = "logicappdatasync-link-blob"
+  name                  = "${var.virtual_network_name}-windows_web_core-link"
   private_dns_zone_name = azurerm_private_dns_zone.web_core_windows.name
   resource_group_name   = var.resource_group_name
   virtual_network_id    = azurerm_virtual_network.virtual_network.id
