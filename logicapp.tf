@@ -1,11 +1,14 @@
 
 resource "azurerm_service_plan" "service_plan" {
-  location            = "francecentral"
-  name                = "logicappdatasync-asp"
+  location            = var.resource_group_location
+  name                = "${var.service_plan_name}-${var.environment}"
   os_type             = "Windows"
   resource_group_name = var.resource_group_name
   sku_name            = "WS1"
-  #zone_balancing_enabled = true
+
+  maximum_elastic_worker_count = 20
+
+  zone_balancing_enabled = var.service_plan_zone_balancing_enabled
   depends_on = [
     azurerm_resource_group.resource_group
   ]
@@ -13,8 +16,8 @@ resource "azurerm_service_plan" "service_plan" {
 resource "azurerm_logic_app_standard" "logic_app_standard" {
   app_service_plan_id        = azurerm_service_plan.service_plan.id
   https_only                 = true
-  location                   = "francecentral"
-  name                       = var.windows_logic_app_name
+  location                   = var.resource_group_location
+  name                       = "${var.windows_logic_app_name}-${var.environment}"
   resource_group_name        = var.resource_group_name
   storage_account_access_key = azurerm_storage_account.storage_account.primary_access_key
   storage_account_name       = azurerm_storage_account.storage_account.name
@@ -25,12 +28,12 @@ resource "azurerm_logic_app_standard" "logic_app_standard" {
     type = "SystemAssigned"
   }
 
-
   app_settings = {
     "WEBSITE_CONTENTOVERVNET" : "1"
     "FUNCTIONS_WORKER_RUNTIME" : "node"
     "WEBSITE_NODE_DEFAULT_VERSION" : "~18"
-    # "APPINSIGHTS_INSTRUMENTATIONKEY" = var.instrumentation_key
+    WEBSITE_VNET_ROUTE_ALL           = 1
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.application_insights.instrumentation_key
   }
 
   site_config {
@@ -42,6 +45,9 @@ resource "azurerm_logic_app_standard" "logic_app_standard" {
     vnet_route_all_enabled           = true
     always_on                        = true
     public_network_access_enabled    = false
+    elastic_instance_minimum         = 3
+
+
   }
   depends_on = [
     azurerm_subnet.outbound_subnet, azurerm_storage_share.storage_share,
