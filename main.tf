@@ -86,7 +86,7 @@ resource "azurerm_log_analytics_workspace" "log_analytics_workspace" {
   location            = var.resource_group_location
   sku                 = var.log_analytics_workspace_sku
   retention_in_days   = 30
-
+  depends_on          = [azurerm_resource_group.resource_group]
 }
 
 resource "azurerm_application_insights" "application_insights" {

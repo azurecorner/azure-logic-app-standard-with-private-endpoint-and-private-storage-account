@@ -6,3 +6,5 @@ terraform.tfstate.backup
 /.vs/slnx.sqlite
 /.vs
 .terraform/environment
+integration_account.tf
+

@@ -27,13 +27,12 @@ resource "azurerm_logic_app_standard" "logic_app_standard" {
   identity {
     type = "SystemAssigned"
   }
-
   app_settings = {
-    "WEBSITE_CONTENTOVERVNET" : "1"
+
     "FUNCTIONS_WORKER_RUNTIME" : "node"
     "WEBSITE_NODE_DEFAULT_VERSION" : "~18"
-    WEBSITE_VNET_ROUTE_ALL           = 1
-    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.application_insights.instrumentation_key
+    "WEBSITE_VNET_ROUTE_ALL" = 1
+    "WEBSITE_CONTENTOVERVNET" : 1
   }
 
   site_config {
@@ -42,20 +41,16 @@ resource "azurerm_logic_app_standard" "logic_app_standard" {
     websockets_enabled               = false
     min_tls_version                  = "1.2"
     runtime_scale_monitoring_enabled = false
-    vnet_route_all_enabled           = true
     always_on                        = true
     public_network_access_enabled    = false
     elastic_instance_minimum         = 3
-
-
   }
   depends_on = [
-    azurerm_subnet.outbound_subnet, azurerm_storage_share.storage_share,
+    azurerm_subnet.outbound_subnet,
+    azurerm_storage_share.storage_share,
     azurerm_service_plan.service_plan
   ]
 }
-
-
 
 resource "azurerm_private_endpoint" "private_endpoint" {
   location            = var.resource_group_location
